@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Health Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome (for modern icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        // Restored Dark Theme Colors
+                        'primary-blue': '#60a5fa', /* Lighter blue for dark theme */
+                        'primary-gradient-start': '#1d4ed8',
+                        'primary-gradient-end': '#3b82f6',
+                        'dark-bg': '#0f172a', /* Deep Slate */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Restored Glass Card Style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08); /* Very slight transparency */
+            backdrop-filter: blur(15px); /* Strong blur effect */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15); /* Light border for definition */
+            border-radius: 1rem; /* match rounded-2xl */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        /* Input Field Style for Dark Theme */
+        .dark-input {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #f3f4f6;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .dark-input:focus {
+             border-color: #60a5fa;
+             box-shadow: 0 0 0 1px #60a5fa;
+        }
+
+        /* Loading Dots */
+        .loading-dot {
+            animation: dot-flashing 1s infinite alternate;
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            margin: 0 2px;
+            opacity: 0;
+        }
+        .loading-dot:nth-child(1) { animation-delay: 0s; }
+        .loading-dot:nth-child(2) { animation-delay: 0.3s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.6s; }
+        @keyframes dot-flashing {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .gradient-button {
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            --tw-gradient-from: #1d4ed8;
+            --tw-gradient-to: #3b82f6;
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+        }
+        .gradient-button:hover {
+             --tw-gradient-from: #1e40af;
+             --tw-gradient-to: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-dark-bg min-h-screen p-4 sm:p-8 font-sans text-gray-100">
+
+    <!-- Header & Title -->
+    <header class="mb-8 max-w-6xl mx-auto">
+        <h1 class="text-4xl font-extrabold text-gray-50 flex items-center">
+            <i class="fas fa-heartbeat text-primary-blue mr-3 w-8 text-center"></i>
+            Advanced Health Analyzer (Local Mock)
+        </h1>
+        <p class="text-gray-400 mt-1">Input your details for a personalized, structured diagnosis, prognosis, and plan.</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Input / Control Panel (Left Column) -->
+            <div class="lg:col-span-1">
+                <div class="glass-card p-6 rounded-2xl mb-6">
+                    <h2 class="text-xl font-bold text-gray-50 mb-4 border-b border-gray-700 pb-2">Health Input</h2>
+                    <form id="analysisForm">
+                        <div class="mb-4">
+                            <label for="symptoms" class="block text-sm font-semibold text-gray-300 mb-2">Primary Symptoms & Conditions (Use any language):</label>
+                            <textarea id="symptoms" rows="6" class="w-full p-3 dark-input rounded-xl focus:ring-primary-blue focus:border-primary-blue transition resize-none" placeholder="e.g., 'Mild fever and cough for three days.' (Try English, Hindi, or Marathi to test translation!)"></textarea>
+                        </div>
+                        
+                        <!-- Advanced Input Options -->
+                        <div class="mb-6 space-y-3 p-4 bg-gray-800 rounded-xl border border-gray-700">
+                            <label class="block text-sm font-semibold text-gray-300">Advanced Details (Optional but Recommended):</label>
+                            <div class="flex space-x-4">
+                                <input type="number" id="age" placeholder="Age (e.g., 35)" class="w-1/2 p-2 dark-input rounded-lg focus:ring-primary-blue focus:border-primary-blue transition" min="1">
+                                <select id="gender" class="w-1/2 p-2 dark-input rounded-lg focus:ring-primary-blue focus:border-primary-blue transition">
+                                    <option value="">Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <!-- LANGUAGE SELECTOR -->
+                            <select id="language" class="w-full p-2 dark-input rounded-lg focus:ring-primary-blue focus:border-primary-blue transition font-semibold text-gray-300">
+                                <option value="English">Output Language: English</option>
+                                <option value="Hindi">Output Language: Hindi (हिंदी)</option>
+                                <option value="Marathi">Output Language: Marathi (मराठी)</option>
+                                <option value="Tamil">Output Language: Tamil (தமிழ்)</option>
+                                <option value="Bengali">Output Language: Bengali (বাংলা)</option>
+                                <option value="Spanish">Output Language: Spanish (Español)</option>
+                            </select>
+                            <input type="text" id="duration" placeholder="Symptom Duration (e.g., '2 days')" class="w-full p-2 dark-input rounded-lg focus:ring-primary-blue focus:border-primary-blue transition">
+                        </div>
+
+                        <button type="submit" id="analyzeButton" class="w-full gradient-button text-white font-bold py-3 px-4 rounded-xl transition duration-300 shadow-lg hover:shadow-xl flex justify-center items-center">
+                            <i class="fas fa-microscope mr-2"></i>
+                            Analyze Health
+                            <!-- Loading indicator removed from use -->
+                        </button>
+                        <p id="error-message" class="text-red-400 text-sm mt-3 hidden"></p>
+                    </form>
+                </div>
+
+                <!-- Analysis Graph Card (Risk Metrics) -->
+                <div class="glass-card p-6 rounded-2xl mb-6">
+                    <h2 class="text-xl font-bold text-gray-50 mb-4 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-chart-line text-red-400 mr-2"></i>
+                        Risk Metrics (Visual Analysis)
+                    </h2>
+                    <div id="riskMetricsDisplay" class="h-64 flex flex-col justify-end p-2 bg-gray-800 rounded-xl border border-gray-700">
+                    </div>
+                </div>
+
+                <!-- NEW: Report History Toggle Button (Matches user's image) -->
+                <div id="historyToggleButton" class="glass-card p-4 rounded-xl mb-6 cursor-pointer hover:bg-white/10 transition duration-150 flex items-center justify-center">
+                    <!-- Clock Icon -->
+                    <i id="historyIcon" class="fas fa-clock text-lg mr-3 text-gray-200"></i>
+                    <!-- Button Text -->
+                    <span id="historyButtonText" class="text-lg font-semibold text-gray-50">Show Report History</span>
+                </div>
+                
+                <!-- History Card (Collapsible) -->
+                <div id="historyContainer" class="glass-card p-6 rounded-2xl hidden">
+                    <h2 class="text-xl font-bold text-gray-50 mb-4 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-history text-purple-400 mr-2"></i>
+                        Analysis History
+                    </h2>
+                    <div id="historyList" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                        <!-- History items will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel (Right Columns) -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Overall Advanced Analysis Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-stethoscope text-green-400 mr-2"></i>
+                        Diagnosis & Advanced Summary
+                    </h2>
+                    <div id="diagnosisSummary" class="text-gray-300 leading-relaxed italic">
+                        <!-- Content inserted by JS -->
+                    </div>
+                </div>
+
+                <!-- Prognosis & Next Steps Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-shoe-prints text-cyan-400 mr-2"></i>
+                        Prognosis & Next Steps
+                    </h2>
+                    <div id="prognosisList" class="space-y-3">
+                        <!-- Content inserted by JS -->
+                    </div>
+                </div>
+
+                <!-- Medications/Remedies Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-pills text-indigo-400 mr-2"></i>
+                        Medications & Home Remedies
+                    </h2>
+                    <div id="medicationList" class="space-y-3">
+                        <!-- Content inserted by JS -->
+                    </div>
+                </div>
+
+                <!-- Diet & Lifestyle Card -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-gray-50 mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-apple-alt text-amber-400 mr-2"></i>
+                        Diet & Lifestyle Plan
+                    </h2>
+                    <div id="dietPlanList" class="space-y-3">
+                        <!-- Content inserted by JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        
+        // =========================================================
+        // DOM ELEMENTS 
+        // =========================================================
+        const form = document.getElementById('analysisForm');
+        const symptomsInput = document.getElementById('symptoms');
+        const ageInput = document.getElementById('age');
+        const genderInput = document.getElementById('gender');
+        const durationInput = document.getElementById('duration');
+        const languageInput = document.getElementById('language');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const errorMessage = document.getElementById('error-message');
+
+        const diagnosisSummaryDiv = document.getElementById('diagnosisSummary');
+        const prognosisListDiv = document.getElementById('prognosisList');
+        const medicationListDiv = document.getElementById('medicationList');
+        const dietPlanListDiv = document.getElementById('dietPlanList');
+        const riskMetricsDisplay = document.getElementById('riskMetricsDisplay');
+        
+        // HISTORY ELEMENTS
+        const historyListDiv = document.getElementById('historyList');
+        const historyContainer = document.getElementById('historyContainer'); // The whole card
+        const historyToggleButton = document.getElementById('historyToggleButton');
+        const historyButtonText = document.getElementById('historyButtonText');
+        const historyIcon = document.getElementById('historyIcon');
+
+        // =========================================================
+        // MOCK DATA STRUCTURES - अब 3 अलग-अलग परिदृश्यों के लिए
+        // =========================================================
+        
+        // 1. सामान्य वायरल संक्रमण (Common Viral Infection)
+        const MOCK_RESULTS_VIRAL_ENGLISH = {
+            diagnosisSummary: "Based on the reported symptoms of fever, cough, and fatigue, the likely assessment points towards a common viral infection, such as the cold or flu. The body is fighting the infection. Adequate rest and hydration are key to recovery. Please monitor symptoms closely.",
+            medicationsAndRemedies: [
+                { name: "Acetaminophen (Paracetamol)", type: "OTC", description: "Use for fever and headache relief, strictly following dosage instructions." },
+                { name: "Honey & Ginger Tea", type: "Home Remedy", description: "Effective for soothing a persistent dry cough and throat irritation." },
+                { name: "Vapor Rub/Steam Inhalation", type: "Home Remedy", description: "Helps clear nasal passages and ease breathing congestion." }
+            ],
+            dietPlan: [
+                { category: "Focus On", items: "Warm broths, vegetable soups, and easily digestible foods like rice or toast." },
+                { category: "Avoid", items: "Sugary drinks, heavy fried foods, and highly processed snacks that stress the digestive system." },
+                { category: "Hydration", items: "Drink at least 8-10 glasses of water, herbal tea, or electrolyte solution daily." }
+            ],
+            riskMetrics: [
+                { metric: "Infection Severity", value: 65 },
+                { metric: "Dehydration Risk", value: 45 },
+                { metric: "Fatigue Level", value: 80 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "If fever exceeds 102°F (38.9°C) or difficulty breathing occurs, seek medical attention immediately.", urgency: "Immediate Care", icon: "🚨" },
+                { step: "Consult a doctor if symptoms worsen or persist beyond 7 days.", urgency: "Consult Doctor", icon: "📅" },
+                { step: "Prioritize 8-10 hours of sleep per night and reduce strenuous activity.", urgency: "Routine", icon: "🛌" }
+            ]
+        };
+
+        const MOCK_RESULTS_VIRAL_HINDI = {
+            diagnosisSummary: "तीन दिनों से हल्के बुखार, खांसी और थकान के लक्षणों के आधार पर, संभावित मूल्यांकन सामान्य वायरल संक्रमण, जैसे कि सामान्य सर्दी या इन्फ्लूएंजा (फ्लू) की ओर इशारा करता है। शरीर सक्रिय रूप से संक्रमण से लड़ रहा है, जिसके कारण ये लक्षण हो रहे हैं। ठीक होने के लिए पर्याप्त आराम और हाइड्रेशन महत्वपूर्ण हैं। कृपया लक्षणों पर बारीकी से नज़र रखें।",
+            medicationsAndRemedies: [
+                { name: "एसिटामिनोफेन (पेरासिटामोल)", type: "ओटीसी", description: "बुखार और सिरदर्द से राहत के लिए इस्तेमाल करें, खुराक के निर्देशों का सख्ती से पालन करें।" },
+                { name: "शहद और अदरक की चाय", type: "घरेलू उपाय", description: "लगातार सूखी खांसी और गले की जलन को शांत करने में प्रभावी।" },
+                { name: "भाप लेना (स्टीम इनहेलेशन)", type: "घरेलू उपाय", description: "नाक के मार्ग को साफ करने और सांस लेने की तकलीफ को कम करने में मदद करता है।" }
+            ],
+            dietPlan: [
+                { category: "इन पर ध्यान दें", items: "गर्म शोरबा, सब्जी का सूप, और आसानी से पचने वाले खाद्य पदार्थ जैसे चावल या टोस्ट।" },
+                { category: "इनसे बचें", items: "शक्कर युक्त पेय, भारी तले हुए खाद्य पदार्थ, और अत्यधिक प्रसंस्कृत स्नैक्स जो पाचन तंत्र पर तनाव डालते हैं।" },
+                { category: "हाइड्रेशन", items: "रोजाना कम से कम 8-10 गिलास पानी, हर्बल चाय, या इलेक्ट्रोलाइट घोल पिएं।" }
+            ],
+            riskMetrics: [
+                { metric: "संक्रमण की गंभीरता", value: 65 },
+                { metric: "निर्जलीकरण का जोखिम", value: 45 },
+                { metric: "थकान का स्तर", value: 80 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "यदि बुखार 102°F (38.9°C) से अधिक हो जाता है या सांस लेने में कठिनाई होती है, तो तुरंत चिकित्सा सहायता लें।", urgency: "तत्काल देखभाल", icon: "🚨" },
+                { step: "यदि लक्षण बिगड़ते हैं या 7 दिनों से अधिक समय तक बने रहते हैं तो डॉक्टर से परामर्श करें।", urgency: "डॉक्टर से परामर्श करें", icon: "📅" },
+                { step: "प्रति रात 8-10 घंटे की नींद को प्राथमिकता दें और ज़ोरदार गतिविधि कम करें।", urgency: "नियमित", icon: "🛌" }
+            ]
+        };
+
+        const MOCK_RESULTS_VIRAL_MARATHI = {
+            diagnosisSummary: "तीन दिवसांपासून सौम्य ताप, खोकला आणि थकवा या लक्षणांवर आधारित, संभाव्य मूल्यांकन सामान्य व्हायरल संसर्ग, जसे की सामान्य सर्दी किंवा इन्फ्लूएंजा (फ्लू) कडे निर्देशित करते. शरीर सक्रियपणे संसर्गाशी लढत आहे, ज्यामुळे ही लक्षणे दिसत आहेत. लवकर बरे होण्यासाठी पुरेसा आराम आणि हायड्रेशन महत्त्वाचे आहे. कृपया लक्षणांचे बारकाईने निरीक्षण करा.",
+            medicationsAndRemedies: [
+                { name: "एसीटामिनोफेन (पॅरासिटामॉल)", type: "ओटीसी", description: "ताप आणि डोकेदुखीपासून आराम मिळवण्यासाठी वापरा, मात्र डोसच्या सूचनांचे काटेकोरपणे पालन करा." },
+                { name: "मध आणि आले चहा", type: "घरगुती उपाय", description: "सततचा कोरडा खोकला आणि घशातील जळजळ शांत करण्यासाठी प्रभावी." },
+                { name: "वाफ घेणे (स्टीम इनहेलेशन)", type: "घरगुती उपाय", description: "नाकातील मार्ग साफ करण्यास आणि श्वास घेण्यास मदत करते." }
+            ],
+            dietPlan: [
+                { category: "यावर लक्ष केंद्रित करा", items: "गरम रस्सा, भाजीपाला सूप आणि सहज पचणारे पदार्थ जसे की भात किंवा टोस्ट." },
+                { category: "टाळा", items: "साखरयुक्त पेय, जड तळलेले पदार्थ आणि जास्त प्रक्रिया केलेले स्नॅक्स जे पाचन तंत्रावर ताण देतात." },
+                { category: "हायड्रेशन", items: "दररोज किमान 8-10 ग्लास पाणी, हर्बल चहा किंवा इलेक्ट्रोलाइट द्रावण प्या." }
+            ],
+            riskMetrics: [
+                { metric: "संसर्गाची तीव्रता", value: 65 },
+                { metric: "निर्जलीकरणचा धोका", value: 45 },
+                { metric: "थकव्याची पातळी", value: 80 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "जर ताप 102°F (38.9°C) पेक्षा जास्त वाढला किंवा श्वास घेण्यास अडचण आली, तर त्वरित वैद्यकीय मदत घ्या.", urgency: "त्वरित काळजी", icon: "🚨" },
+                { step: "लक्षणे बिघडल्यास किंवा 7 दिवसांपेक्षा जास्त काळ टिकून राहिल्यास डॉक्टरांचा सल्ला घ्या.", urgency: "डॉक्टरांचा सल्ला घ्या", icon: "📅" },
+                { step: "रात्री 8-10 तास झोपेला प्राधान्य द्या आणि कठोर शारीरिक हालचाल कमी करा.", urgency: "नियमित", icon: "🛌" }
+            ]
+        };
+
+        // 2. पेट का फ्लू (Stomach Flu / Gastroenteritis)
+        const MOCK_RESULTS_STOMACH_FLU_ENGLISH = {
+            diagnosisSummary: "Based on your symptoms (nausea, vomiting, and abdominal discomfort), the assessment points towards Acute Gastroenteritis, commonly known as the stomach flu. This is typically a viral infection. Rest and maintaining electrolyte balance are critical.",
+            medicationsAndRemedies: [
+                { name: "Oral Rehydration Solution (ORS)", type: "OTC", description: "To replenish lost fluids and electrolytes due to vomiting or diarrhea." },
+                { name: "Bland Diet (BRAT)", type: "Home Remedy", description: "Consume small, frequent meals of easily digestible foods like bananas, rice, applesauce, and toast." },
+                { name: "Ginger (fresh/tea)", type: "Home Remedy", description: "Helps soothe nausea and improve digestion." }
+            ],
+            dietPlan: [
+                { category: "Focus On", items: "Clear liquids, electrolytes, bananas, rice, and plain crackers." },
+                { category: "Avoid", items: "Dairy products, high-fat foods, caffeine, and spicy items for 48 hours." },
+                { category: "Hydration", items: "Sip small amounts of water or ORS frequently, rather than large quantities at once." }
+            ],
+            riskMetrics: [
+                { metric: "Infection Severity", value: 75 },
+                { metric: "Dehydration Risk", value: 85 },
+                { metric: "Fatigue Level", value: 60 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "If symptoms persist beyond 3 days or you cannot keep fluids down, seek medical attention immediately.", urgency: "Immediate Care", icon: "🚨" },
+                { step: "Rest completely for 24 hours and gradually resume normal activity.", urgency: "Routine", icon: "🛌" },
+                { step: "Wash hands thoroughly and often to prevent spreading the virus.", urgency: "Routine", icon: "🧼" }
+            ]
+        };
+        
+        const MOCK_RESULTS_STOMACH_FLU_HINDI = {
+            diagnosisSummary: "आपके लक्षणों (मतली, उल्टी, और पेट में बेचैनी) के आधार पर, मूल्यांकन तीव्र जठरांत्र शोथ (Acute Gastroenteritis), जिसे आमतौर पर पेट का फ्लू कहा जाता है, की ओर इशारा करता है। यह आम तौर पर एक वायरल संक्रमण है। आराम और इलेक्ट्रोलाइट संतुलन बनाए रखना महत्वपूर्ण है।",
+            medicationsAndRemedies: [
+                { name: "ओरल रिहाइड्रेशन घोल (ओआरएस)", type: "ओटीसी", description: "उल्टी या दस्त के कारण खोए हुए तरल पदार्थ और इलेक्ट्रोलाइट्स की पूर्ति के लिए उपयोग करें।" },
+                { name: "सादा आहार (BRAT)", type: "घरेलू उपाय", description: "केला, चावल, सेब की चटनी, और टोस्ट जैसे आसानी से पचने वाले खाद्य पदार्थों को कम मात्रा में बार-बार खाएं।" },
+                { name: "अदरक (ताज़ा/चाय)", type: "घरेलू उपाय", description: "मतली को शांत करने और पाचन में सुधार करने में मदद करता है।" }
+            ],
+            dietPlan: [
+                { category: "इन पर ध्यान दें", items: "साफ तरल पदार्थ, इलेक्ट्रोलाइट्स, केले, चावल और सादे पटाखे।" },
+                { category: "इनसे बचें", items: "डेयरी उत्पाद, उच्च वसा वाले खाद्य पदार्थ, कैफीन, और मसालेदार चीजें 48 घंटों के लिए।" },
+                { category: "हाइड्रेशन", items: "एक बार में बड़ी मात्रा में पानी के बजाय, धीरे-धीरे पानी या ओआरएस की छोटी घूंट लें।" }
+            ],
+            riskMetrics: [
+                { metric: "संक्रमण की गंभीरता", value: 75 },
+                { metric: "निर्जलीकरण का जोखिम", value: 85 },
+                { metric: "थकान का स्तर", value: 60 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "यदि लक्षण 3 दिनों से अधिक समय तक बने रहते हैं या आप तरल पदार्थ नहीं रोक पा रहे हैं, तो तुरंत चिकित्सा सहायता लें।", urgency: "तत्काल देखभाल", icon: "🚨" },
+                { step: "24 घंटे पूरी तरह आराम करें और धीरे-धीरे सामान्य गतिविधि शुरू करें।", urgency: "नियमित", icon: "🛌" },
+                { step: "वायरस को फैलने से रोकने के लिए हाथों को अच्छी तरह और बार-बार धोएं।", urgency: "नियमित", icon: "🧼" }
+            ]
+        };
+
+        const MOCK_RESULTS_STOMACH_FLU_MARATHI = {
+            diagnosisSummary: "तुमच्या लक्षणांवर (मळमळ, उलट्या आणि ओटीपोटात अस्वस्थता) आधारित, संभाव्य मूल्यांकन तीव्र जठरांत्र शोथ (Acute Gastroenteritis), ज्याला सामान्यतः 'पोटाचा फ्लू' म्हणतात, याकडे निर्देश करते. हा सामान्यतः एक व्हायरल संसर्ग आहे. विश्रांती आणि इलेक्ट्रोलाइट संतुलन राखणे महत्त्वाचे आहे.",
+            medicationsAndRemedies: [
+                { name: "ओरल रिहाइड्रेशन सोल्यूशन (ORS)", type: "ओटीसी", description: "उलट्या किंवा अतिसारामुळे गमावलेले द्रव आणि इलेक्ट्रोलाइट्सची भरपाई करण्यासाठी वापरा." },
+                { name: "साधा आहार (BRAT)", type: "घरगुती उपाय", description: "केळी, भात, सफरचंदाची चटणी आणि टोस्टसारखे सहज पचणारे पदार्थ कमी प्रमाणात वारंवार खा." },
+                { name: "आले (ताजे/चहा)", type: "घरगुती उपाय", description: "मळमळ शांत करण्यास आणि पचन सुधारण्यास मदत करते." }
+            ],
+            dietPlan: [
+                { category: "यावर लक्ष केंद्रित करा", items: "स्वच्छ पातळ पदार्थ, इलेक्ट्रोलाइट्स, केळी, भात आणि साधे क्रॅकर्स." },
+                { category: "टाळा", items: "डेअरी उत्पादने, उच्च चरबीयुक्त पदार्थ, कॅफिन आणि मसालेदार वस्तू 48 तासांसाठी." },
+                { category: "हायड्रेशन", items: "एकाच वेळी मोठ्या प्रमाणात पाणी पिण्याऐवजी, थोडे थोडे पाणी किंवा ORS प्या." }
+            ],
+            riskMetrics: [
+                { metric: "संसर्गाची तीव्रता", value: 75 },
+                { metric: "निर्जलीकरणचा धोका", value: 85 },
+                { metric: "थकव्याची पातळी", value: 60 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "जर लक्षणे 3 दिवसांपेक्षा जास्त काळ टिकून राहिली किंवा आपण द्रवपदार्थ शरीरात टिकवून ठेवू शकत नसाल, तर त्वरित वैद्यकीय मदत घ्या.", urgency: "त्वरित काळजी", icon: "🚨" },
+                { step: "24 तास पूर्णपणे विश्रांती घ्या आणि हळूहळू सामान्य क्रियाकलाप पुन्हा सुरू करा.", urgency: "नियमित", icon: "🛌" },
+                { step: "विषाणूचा प्रसार रोखण्यासाठी हात चांगले आणि वारंवार धुवा.", urgency: "नियमित", icon: "🧼" }
+            ]
+        };
+
+        // 3. ॲलर्जी (Allergy)
+        const MOCK_RESULTS_ALLERGY_ENGLISH = {
+            diagnosisSummary: "The consistent symptoms of sneezing, itchy eyes, and runny nose, especially if seasonal, strongly suggest Allergic Rhinitis (Hay Fever). This is an immune response to environmental triggers like pollen or dust.",
+            medicationsAndRemedies: [
+                { name: "Antihistamines (e.g., Cetirizine)", type: "OTC", description: "Take once daily to block histamine and relieve sneezing and itching." },
+                { name: "Nasal Saline Rinse", type: "Home Remedy", description: "Use to wash away allergens and clear nasal passages." },
+                { name: "Eye Drops (Antihistamine)", type: "OTC", description: "Use as needed for relief from itchy and watery eyes." }
+            ],
+            dietPlan: [
+                { category: "Focus On", items: "Foods rich in Vitamin C (citrus, bell peppers) and Omega-3s (nuts, fish) to support immune function." },
+                { category: "Avoid", items: "Foods that may cross-react with pollen, such as bananas, melons, or sunflower seeds (Oral Allergy Syndrome)." },
+                { category: "Lifestyle", items: "Keep windows closed during high pollen days and change clothes after being outdoors." }
+            ],
+            riskMetrics: [
+                { metric: "Inflammation Level", value: 55 },
+                { metric: "Breathing Obstruction", value: 30 },
+                { metric: "Discomfort Level", value: 70 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "If symptoms worsen to include wheezing or difficulty breathing, consult a specialist (Allergist).", urgency: "Consult Doctor", icon: "📅" },
+                { step: "Track symptoms daily to identify specific triggers (pollen, dust).", urgency: "Routine", icon: "📊" },
+                { step: "Limit exposure to known allergens, especially in the mornings.", urgency: "Routine", icon: "🌳" }
+            ]
+        };
+
+        const MOCK_RESULTS_ALLERGY_HINDI = {
+            diagnosisSummary: "छींकने, आंखों में खुजली और नाक बहने के लगातार लक्षण, खासकर यदि वे मौसमी हैं, तो दृढ़ता से एलर्जिक राइनाइटिस (पराग ज्वर) का सुझाव देते हैं। यह पराग या धूल जैसे पर्यावरणीय ट्रिगर के लिए एक प्रतिरक्षा प्रतिक्रिया है।",
+            medicationsAndRemedies: [
+                { name: "एंटीहिस्टामाइन्स (जैसे, सेटिरिज़िन)", type: "ओटीसी", description: "हिस्टामाइन को रोकने और छींकने और खुजली से राहत के लिए दिन में एक बार लें।" },
+                { name: "नेजल सलाइन रिंस", type: "घरेलू उपाय", description: "एलर्जी कारकों को धोने और नाक के मार्ग को साफ करने के लिए उपयोग करें।" },
+                { name: "आई ड्रॉप्स (एंटीहिस्टामाइन)", type: "ओटीसी", description: "आंखों में खुजली और पानी आने से राहत के लिए आवश्यकतानुसार उपयोग करें।" }
+            ],
+            dietPlan: [
+                { category: "इन पर ध्यान दें", items: "प्रतिरक्षा कार्य का समर्थन करने के लिए विटामिन सी (खट्टे फल, शिमला मिर्च) और ओमेगा-3 (मेवे, मछली) से भरपूर खाद्य पदार्थ।" },
+                { category: "इनसे बचें", items: "ऐसे खाद्य पदार्थ जो पराग (pollen) के साथ क्रॉस-रिएक्ट कर सकते हैं, जैसे केला, तरबूज, या सूरजमुखी के बीज (ओरल एलर्जी सिंड्रोम)।" },
+                { category: "जीवनशैली", items: "अधिक पराग वाले दिनों में खिड़कियां बंद रखें और बाहर रहने के बाद कपड़े बदलें।" }
+            ],
+            riskMetrics: [
+                { metric: "सूजन का स्तर", value: 55 },
+                { metric: "साँस में रुकावट", value: 30 },
+                { metric: "असुविधा का स्तर", value: 70 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "यदि लक्षण बिगड़ते हैं और घरघराहट या साँस लेने में कठिनाई होती है, तो किसी विशेषज्ञ (एलर्जिस्ट) से परामर्श करें।", urgency: "डॉक्टर से परामर्श करें", icon: "📅" },
+                { step: "विशिष्ट ट्रिगर (पराग, धूल) की पहचान करने के लिए दैनिक रूप से लक्षणों पर नज़र रखें।", urgency: "नियमित", icon: "📊" },
+                { step: "ज्ञात एलर्जी कारकों के संपर्क को सीमित करें, खासकर सुबह के समय।", urgency: "नियमित", icon: "🌳" }
+            ]
+        };
+
+        const MOCK_RESULTS_ALLERGY_MARATHI = {
+            diagnosisSummary: "शिंका येणे, डोळ्यांना खाज सुटणे आणि नाक गळणे यांसारखी सततची लक्षणे, विशेषत: जर ती हंगामी असतील, तर ॲलर्जिक ऱ्हायनिटिस (परागज्वर) दर्शवतात. ही परागकण किंवा धूळ यांसारख्या पर्यावरणीय घटकांमुळे होणारी रोगप्रतिकार प्रतिक्रिया आहे.",
+            medicationsAndRemedies: [
+                { name: "अँटीहिस्टामाइन्स (उदा. सेटिरिझिन)", type: "ओटीसी", description: "हिस्टामाइन अवरोधित करण्यासाठी आणि शिंका येणे व खाज सुटण्यापासून आराम मिळवण्यासाठी दररोज एकदा घ्या." },
+                { name: "नाकात सलाईनचे द्रावण", type: "घरगुती उपाय", description: "ॲलर्जीकारक घटक धुवून टाकण्यासाठी आणि नाकाचे मार्ग साफ करण्यासाठी वापरा." },
+                { name: "डोळ्याचे ड्रॉप्स (अँटीहिस्टामाइन)", type: "ओटीसी", description: "डोळ्यांची खाज आणि पाणी येण्यापासून आराम मिळण्यासाठी आवश्यकतेनुसार वापरा." }
+            ],
+            dietPlan: [
+                { category: "यावर लक्ष केंद्रित करा", items: "रोगप्रतिकार कार्यासाठी व्हिटॅमिन सी (लिंबूवर्गीय फळे, ढोबळी मिरची) आणि ओमेगा-3 (नट, मासे) मध्ये समृद्ध असलेले पदार्थ खा." },
+                { category: "टाळा", items: "परागकणांशी (pollen) क्रॉस-रिॲक्ट होणारे पदार्थ, जसे की केळी, खरबूज, किंवा सूर्यफूल बिया (ओरल ॲलर्जी सिंड्रोम)." },
+                { category: "जीवनशैली", items: "जास्त परागकण असलेल्या दिवसांमध्ये खिडक्या बंद ठेवा आणि बाहेरून आल्यावर कपडे बदला." }
+            ],
+            riskMetrics: [
+                { metric: "सूज पातळी", value: 55 },
+                { metric: "श्वास अडथळा", value: 30 },
+                { metric: "अस्वस्थता पातळी", value: 70 }
+            ],
+            prognosisAndNextSteps: [
+                { step: "जर लक्षणे वाढून श्वास घेण्यास अडथळा किंवा घरघर जाणवत असेल, तर तज्ञांचा (ॲलर्जिस्ट) सल्ला घ्या.", urgency: "डॉक्टरांचा सल्ला घ्या", icon: "📅" },
+                { step: "विशिष्ट ट्रिगर (परागकण, धूळ) ओळखण्यासाठी लक्षणांचा दररोज मागोवा घ्या.", urgency: "नियमित", icon: "📊" },
+                { step: "ज्ञात ॲलर्जीकारक घटकांच्या संपर्कात येणे मर्यादित करा, विशेषत: सकाळी.", urgency: "नियमित", icon: "🌳" }
+            ]
+        };
+
+        /**
+         * मुख्य मॉक फ़ंक्शन जो लक्षणों के आधार पर परिणाम चुनता है।
+         * Handles keyword analysis (English only) and returns results in the requested language.
+         */
+        function generateMockHealthAnalysis(symptoms, language) {
+            const normalizedSymptoms = symptoms.toLowerCase();
+            let resultType;
+            let mockEnglishData;
+
+            // 1. Determine Result Type based on English Keywords (समीक्षा)
+            if (normalizedSymptoms.includes('stomach') || normalizedSymptoms.includes('vomit') || normalizedSymptoms.includes('diarrhea') || normalizedSymptoms.includes('पेट')) {
+                resultType = 'stomach_flu';
+                mockEnglishData = MOCK_RESULTS_STOMACH_FLU_ENGLISH;
+            } else if (normalizedSymptoms.includes('sneeze') || normalizedSymptoms.includes('itchy') || normalizedSymptoms.includes('allergy') || normalizedSymptoms.includes('खुजली') || normalizedSymptoms.includes('छींक')) {
+                resultType = 'allergy';
+                mockEnglishData = MOCK_RESULTS_ALLERGY_ENGLISH;
+            } else {
+                resultType = 'viral'; // Default for cough, fever, etc.
+                mockEnglishData = MOCK_RESULTS_VIRAL_ENGLISH;
+            }
+
+            // 2. Map English Data to the requested Output Language (भाषा में रूपांतरण)
+            if (language === 'Hindi') {
+                if (resultType === 'stomach_flu') return MOCK_RESULTS_STOMACH_FLU_HINDI;
+                if (resultType === 'allergy') return MOCK_RESULTS_ALLERGY_HINDI;
+                return MOCK_RESULTS_VIRAL_HINDI;
+            } else if (language === 'Marathi') {
+                if (resultType === 'stomach_flu') return MOCK_RESULTS_STOMACH_FLU_MARATHI;
+                if (resultType === 'allergy') return MOCK_RESULTS_ALLERGY_MARATHI;
+                return MOCK_RESULTS_VIRAL_MARATHI;
+            } else {
+                // Return English for default, English, or other unsupported languages
+                return mockEnglishData;
+            }
+        }
+        
+        // --- Rendering Functions (mostly unchanged) ---
+        
+        function renderDiagnosisSummary(summary) {
+            diagnosisSummaryDiv.innerHTML = `
+                <p class="text-lg font-bold text-gray-50 mb-2">Likely Assessment:</p>
+                <p class="text-gray-300 leading-relaxed">${summary}</p>
+                <div class="mt-4 p-3 bg-red-900/40 text-red-300 border-l-4 border-red-500 rounded-lg">
+                    <p class="font-bold">Disclaimer:</p>
+                    <p class="text-sm">This analysis is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of a qualified health provider.</p>
+                </div>
+            `;
+        }
+        
+        function renderPrognosis(steps) {
+            prognosisListDiv.innerHTML = steps.map(item => {
+                let colorClass = 'bg-green-700/40 text-green-300 border-green-700';
+                if (item.urgency.includes('Immediate') || item.urgency.includes('तत्काल') || item.urgency.includes('त्वरित')) {
+                    colorClass = 'bg-red-700/40 text-red-300 border-red-700';
+                } else if (item.urgency.includes('Consult') || item.urgency.includes('परामर्श')) {
+                    colorClass = 'bg-yellow-700/40 text-yellow-300 border-yellow-700';
+                }
+                
+                return `
+                    <div class="p-4 glass-card rounded-xl hover:bg-white/10 transition duration-150 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <span class="mr-3 text-2xl">${item.icon || '📝'}</span>
+                            <p class="text-sm text-gray-300">${item.step}</p>
+                        </div>
+                        <span class="ml-4 text-xs font-semibold px-3 py-1 rounded-full border ${colorClass}">
+                            ${item.urgency}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+            if (steps.length === 0) {
+                prognosisListDiv.innerHTML = '<p class="text-gray-500">No specific action steps or prognosis provided.</p>';
+            }
+        }
+
+        function renderMedications(meds) {
+            medicationListDiv.innerHTML = meds.map(med => `
+                <div class="p-4 glass-card rounded-xl hover:bg-white/10 transition duration-150">
+                    <p class="font-semibold text-primary-blue">${med.name} 
+                        <span class="ml-2 text-xs font-normal px-2 py-1 rounded-full ${med.type.includes('Prescription') ? 'bg-red-700/40 text-red-300' : med.type.includes('OTC') || med.type.includes('ओटीसी') ? 'bg-indigo-700/40 text-indigo-300' : 'bg-green-700/40 text-green-300'}">
+                            ${med.type}
+                        </span>
+                    </p>
+                    <p class="text-sm text-gray-400 mt-1">${med.description}</p>
+                </div>
+            `).join('');
+            if (meds.length === 0) {
+                medicationListDiv.innerHTML = '<p class="text-gray-500">No specific medications suggested at this time.</p>';
+            }
+        }
+
+        function renderDietPlan(dietPlan) {
+            dietPlanListDiv.innerHTML = dietPlan.map(item => `
+                <div class="p-4 glass-card rounded-xl hover:bg-white/10 transition duration-150 flex items-start">
+                    <span class="mr-3 text-2xl">${item.category.includes('Avoid') || item.category.includes('टाळा') ? '🚫' : item.category.includes('Focus') || item.category.includes('ध्यान') ? '🥦' : item.category.includes('Hydration') || item.category.includes('हायड्रेशन') ? '💧' : '🧘'}</span>
+                    <div>
+                        <p class="font-semibold text-gray-50">${item.category}</p>
+                        <p class="text-sm text-gray-400">${item.items}</p>
+                    </div>
+                </div>
+            `).join('');
+            if (dietPlan.length === 0) {
+                dietPlanListDiv.innerHTML = '<p class="text-gray-500">No specific diet or lifestyle advice provided.</p>';
+            }
+        }
+        
+        function renderRiskMetricsGraph(metrics) {
+            riskMetricsDisplay.innerHTML = '';
+            // const maxVal = 100; // Unused, kept for context
+            
+            riskMetricsDisplay.classList.remove('justify-end', 'flex-col'); 
+            riskMetricsDisplay.classList.add('flex-row', 'items-end', 'h-64', 'justify-around');
+
+            const graphHTML = metrics.map(metric => {
+                const height = Math.max(10, metric.value);
+                let colorClass = 'bg-green-500';
+                if (metric.value > 75) {
+                    colorClass = 'bg-red-500';
+                } else if (metric.value > 50) {
+                    colorClass = 'bg-yellow-500';
+                }
+
+                return `
+                    <div class="flex flex-col items-center mx-1 h-full justify-end group cursor-pointer" style="width: 28%;">
+                        <div class="text-xs font-bold mb-1 text-gray-300">${metric.value}%</div>
+                        <div class="w-full rounded-t-lg transition-all duration-700 ease-out ${colorClass} hover:opacity-90" 
+                                style="height: ${height}%;" 
+                                title="${metric.metric}: ${metric.value}%">
+                        </div>
+                        <p class="text-xs text-center mt-2 text-gray-400 font-semibold w-full whitespace-nowrap overflow-hidden text-ellipsis" title="${metric.metric}">${metric.metric}</p>
+                    </div>
+                `;
+            }).join('');
+
+            riskMetricsDisplay.innerHTML = `
+                <div class="flex items-end justify-around w-full h-full p-2">
+                    ${graphHTML}
+                </div>
+            `;
+        }
+
+        // --- HISTORY MANAGEMENT FUNCTIONS (Modified for Toggle) ---
+
+        const HISTORY_STORAGE_KEY = 'healthAnalysisHistory';
+
+        /**
+         * Loads the history array from LocalStorage.
+         */
+        function loadHistory() {
+            const historyJson = localStorage.getItem(HISTORY_STORAGE_KEY);
+            try {
+                return historyJson ? JSON.parse(historyJson) : [];
+            } catch (e) {
+                console.error("Error parsing history from LocalStorage:", e);
+                return []; // Return empty array on parse error
+            }
+        }
+
+        /**
+         * Saves a new analysis result to LocalStorage and updates the history list.
+         */
+        function saveAndRenderHistory(inputSymptoms, analysisResult) {
+            const history = loadHistory();
+            const newEntry = {
+                id: Date.now(),
+                date: new Date().toLocaleString(),
+                input: inputSymptoms.substring(0, 50) + (inputSymptoms.length > 50 ? '...' : ''),
+                fullResult: analysisResult,
+                riskScore: analysisResult.riskMetrics.find(m => m.metric.includes('Severity'))?.value || 'N/A'
+            };
+
+            // Add new entry to the front (most recent first)
+            history.unshift(newEntry);
+            
+            // Limit history size (e.g., last 10 entries)
+            const trimmedHistory = history.slice(0, 10);
+            
+            localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(trimmedHistory));
+            
+            // Render the updated history list
+            renderHistoryList(trimmedHistory);
+        }
+
+        /**
+         * Renders the history list items and attaches click listeners.
+         */
+        function renderHistoryList(history) {
+            if (!history || history.length === 0) {
+                historyListDiv.innerHTML = '<p class="text-gray-500 text-sm italic">No past analyses found. Run an analysis to save it here.</p>';
+                return;
+            }
+
+            historyListDiv.innerHTML = history.map(entry => {
+                let colorClass = 'text-green-400';
+                if (entry.riskScore > 75) {
+                    colorClass = 'text-red-400';
+                } else if (entry.riskScore > 50) {
+                    colorClass = 'text-yellow-400';
+                }
+
+                return `
+                    <div class="p-3 glass-card rounded-xl border border-gray-700 cursor-pointer hover:bg-white/10 transition duration-150 history-item" data-id="${entry.id}">
+                        <p class="font-bold text-sm text-gray-50 flex justify-between items-center">
+                            <span class="truncate pr-2">${entry.input}</span>
+                            <span class="text-xs font-mono ${colorClass}">${entry.riskScore}%</span>
+                        </p>
+                        <p class="text-xs text-gray-400 mt-1">${entry.date}</p>
+                    </div>
+                `;
+            }).join('');
+
+            // Attach event listeners to newly rendered items
+            historyListDiv.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const history = loadHistory();
+                    const selectedId = parseInt(this.getAttribute('data-id'));
+                    const selectedEntry = history.find(e => e.id === selectedId);
+                    
+                    if (selectedEntry) {
+                        renderAnalysisResults(selectedEntry.fullResult);
+                        // Scroll to the diagnosis section for better UX
+                        document.getElementById('diagnosisSummary').scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        // Unified rendering function to be used by both form submission and history click
+        function renderAnalysisResults(analysisData) {
+            renderDiagnosisSummary(analysisData.diagnosisSummary);
+            renderPrognosis(analysisData.prognosisAndNextSteps);
+            renderMedications(analysisData.medicationsAndRemedies);
+            renderDietPlan(analysisData.dietPlan);
+            renderRiskMetricsGraph(analysisData.riskMetrics);
+        }
+
+        // --- Toggle Logic ---
+
+        function toggleHistoryVisibility() {
+            const isHidden = historyContainer.classList.toggle('hidden');
+            
+            // Update button text and icon
+            if (isHidden) {
+                historyButtonText.textContent = 'Show Report History';
+                historyIcon.classList.remove('fa-times-circle');
+                historyIcon.classList.add('fa-clock');
+                historyIcon.classList.remove('text-red-400');
+                historyIcon.classList.add('text-gray-200');
+
+            } else {
+                historyButtonText.textContent = 'Hide Report History';
+                historyIcon.classList.remove('fa-clock');
+                historyIcon.classList.add('fa-times-circle');
+                historyIcon.classList.remove('text-gray-200');
+                historyIcon.classList.add('text-red-400');
+            }
+        }
+        
+        // --- Initialization and Submission Logic (Modified) ---
+
+        const initialDiagnosisText = "The overall analysis will be generated here, providing a comprehensive assessment based on your input.";
+        const initialPrognosisText = "Key action steps and expected outcomes will be listed here.";
+        const initialRemediesText = "Suggested medications, OTC relief, and home remedies will be listed here.";
+        const initialDietText = "Customized diet and lifestyle recommendations will be provided here.";
+        const initialGraphText = '<p class="text-center text-gray-500 py-20">Analysis graph will appear here after processing.</p>';
+
+        function initializeUI() {
+            diagnosisSummaryDiv.innerHTML = `<div class="text-gray-300 leading-relaxed italic">${initialDiagnosisText}</div>`;
+            prognosisListDiv.innerHTML = `<div class="text-gray-400">${initialPrognosisText}</div>`;
+            medicationListDiv.innerHTML = `<div class="text-gray-400">${initialRemediesText}</div>`;
+            dietPlanListDiv.innerHTML = `<div class="text-gray-400">${initialDietText}</div>`;
+            riskMetricsDisplay.innerHTML = initialGraphText;
+
+            // LOAD HISTORY DATA
+            renderHistoryList(loadHistory());
+        }
+
+        window.onload = initializeUI;
+
+        // Attach Toggle Event Listener
+        historyToggleButton.addEventListener('click', toggleHistoryVisibility);
+
+        // Event Listener for Form Submission (MODIFIED to save history)
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = symptomsInput.value.trim();
+            const language = languageInput.value;
+
+            if (query.length < 5) {
+                errorMessage.textContent = 'Please provide a detailed description.';
+                errorMessage.classList.remove('hidden');
+                return;
+            } else {
+                errorMessage.classList.add('hidden');
+            }
+
+            try {
+                // 1. Get the Mock Data (symptoms and language passed to the new function)
+                const analysisData = generateMockHealthAnalysis(query, language);
+
+                // 2. Render Results
+                renderAnalysisResults(analysisData);
+
+                // 3. SAVE THE ANALYSIS TO HISTORY
+                saveAndRenderHistory(query, analysisData);
+
+            } catch (error) {
+                console.error("Analysis Error (Caught):", error);
+                
+                // Enhanced, user-visible error message
+                const userError = `<div class="mt-4 p-4 glass-card border border-red-500">
+                                    <p class="font-bold text-red-400">Analysis Failed!</p>
+                                    <p class="text-sm text-gray-300">A logic error occurred while generating the mock data. Please check the console.</p>
+                                   </div>`;
+
+                diagnosisSummaryDiv.innerHTML = userError;
+                prognosisListDiv.innerHTML = `<p class="text-red-400 p-4">Error: See Diagnosis Summary for details.</p>`;
+                medicationListDiv.innerHTML = `<p class="text-red-400 p-4">Error: Analysis failed.</p>`;
+                dietPlanListDiv.innerHTML = `<p class="text-red-400 p-4">Error: Analysis failed.</p>`;
+                riskMetricsDisplay.innerHTML = '<p class="text-center text-red-400 py-20">Failed to load graph data.</p>';
+            }
+        });
+        
+    </script>
+</body>
+</html>
